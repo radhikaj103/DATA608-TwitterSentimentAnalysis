@@ -22,22 +22,25 @@ api=tweepy.API(auth)
 # matched tags
 def matchTag(s):
     '''
-    Searches filtered hashtags given the entire raw status
+    Searches hastags given the entire raw status
     '''
-    return [tag for tag in keywords if re.search(tag.lower(),str(s).lower())]
+    for tag in keywords:
+        if re.search(tag.lower(),str(s).lower()): return tag
+    # return [tag for tag in keywords if re.search(tag.lower(),str(s).lower())]
 
 def clean(s):
-    s=re.sub(r'(@|https|#)\S+','',s) # links, @mentions, #tags
+    s=re.sub(r'(RT @|@|https|#)\S+','',s) # links
+    # s=re.sub(r'@','',s)
     s=re.sub(r'\n',' ',s) # new lines
     s=re.sub(r' +',' ',s) # extra spaces
-    s=s.rstrip() # trailing spaces
+    s=s.rstrip()
     return s
     
 
 class Listener(tweepy.Stream):
     def __init__(self, consumer_key, consumer_secret, access_token, access_token_secret, **kwargs):
         super().__init__(consumer_key, consumer_secret, access_token, access_token_secret, **kwargs)
-        self.limit = 5
+        self.limit = 20
 
     def on_status(self, status):
         
@@ -46,6 +49,7 @@ class Listener(tweepy.Stream):
               'created_at':str(status.created_at),
               'user_name':status.user.screen_name,
               'user_id':status.user.id_str,
+            # 'raw',
               'retweet':False,
               "tweet_body":0,
               'tags':matchTag(status)}
@@ -53,8 +57,12 @@ class Listener(tweepy.Stream):
         # pull message
         if re.match(r'RT*',status.text):
             data['retweet']=True
-            if not status.retweeted_status.truncated: data['tweet_body']=status.retweeted_status.text        
-            else: data['tweet_body']=status.retweeted_status.extended_tweet['full_text']
+            try:
+                if not status.retweeted_status.truncated: data['tweet_body']=status.retweeted_status.text        
+                else: data['tweet_body']=status.retweeted_status.extended_tweet['full_text']
+            except:
+                if not status.truncated: data['tweet_body']=status.text
+                else: data['tweet_body']=status.extended_tweet['full_text']
         else:
             if not status.truncated: data['tweet_body']=status.text
             else: data['tweet_body']=status.extended_tweet['full_text']
