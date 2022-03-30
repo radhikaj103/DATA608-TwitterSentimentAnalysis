@@ -1,101 +1,84 @@
-from kafka import KafkaProducer
-import configparser
-from json import dumps, loads
-import tweepy
-import re
-import pickle
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import *
+from pyspark.sql.types import *
+# from pyspark.sql import functions as F
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer as sia
 
-# read config
-config = configparser.ConfigParser()
-config.read('config.ini')
 
-api_key=config['twitter']['api_key']
-api_key_secret=config['twitter']['api_key_secret']
-access_token=config['twitter']['access_token']
-access_token_secret=config['twitter']['access_token_secret']
 
-# authenticate
-auth = tweepy.OAuthHandler(api_key,api_key_secret)
-auth.set_access_token(access_token,access_token_secret)
-api=tweepy.API(auth)
+kafka_topic_name = "twitter"
+kafka_bootstrap_servers = 'http://kafka:29092'
 
-# matched tags
-def matchTag(s):
-    '''
-    Searches hastags given the entire raw status
-    '''
-    for tag in keywords:
-        if re.search(tag.lower(),str(s).lower()): return tag
-    # return [tag for tag in keywords if re.search(tag.lower(),str(s).lower())]
+# Vader
+sentiment = sia()
+def sps(text):
+	"Get Vader sentiment polarity compound score"
+	return sentiment.polarity_scores(text)['compound']
+def spsSpark(sparkDF, textColumn="tweet_body"):
+	"Apply Vader sps to Spark"
+	sps_udf = udf(sps, StringType())
+	return sparkDF.withColumn('score', sps_udf(textColumn))
 
-def clean(s):
-    s=re.sub(r'(RT @|@|https|#)\S+','',s) # links
-    # s=re.sub(r'@','',s)
-    s=re.sub(r'\n',' ',s) # new lines
-    s=re.sub(r' +',' ',s) # extra spaces
-    s=s.rstrip()
-    return s
+if __name__ == "__main__":
+	print("PySpark Structured Streaming with Kafka Applications Started ...")
+
+	spark = SparkSession \
+		.builder \
+		.appName("twitterStreaming") \
+		.master("spark://spark-master:7077") \
+		.getOrCreate()
+
+	spark.sparkContext.setLogLevel("ERROR")
+
+	# Construct a streaming DataFrame that reads from test-topic
+	df = spark \
+		.readStream \
+		.format("kafka") \
+		.option("kafka.bootstrap.servers", kafka_bootstrap_servers) \
+		.option("subscribe", kafka_topic_name) \
+		.option("startingOffsets", "latest") \
+		.load()
+		
+	twitterStringdf = df.selectExpr("CAST(value AS STRING)")
+	schema = (StructType() \
+		.add("tweet_id", StringType()) \
+		.add("created_at", TimestampType()) \
+		.add("user_name", StringType()) \
+		.add("user_id", StringType()) \
+		.add("retweet", BooleanType()) \
+		.add("tweet_body", StringType()) \
+		.add("tags", StringType()))
+
+	#schema = "text STRING"
+	twitter_df = twitterStringdf.select(from_json(col("value"), schema).alias("data"))
+
+	print("------------------------")
+	twitter_df.printSchema()
+	print("------------------------")
     
+	# Vader
+	twitter_df=twitter_df.select("data.*")
+	twitter_df=spsSpark(twitter_df)
+	
+	query = twitter_df.writeStream \
+		.trigger(processingTime='5 seconds') \
+		.format("console") \
+		.option("truncate", "false") \
+		.start()
+		# .outputMode("append") \
+		# .start() 
+		
+	query.awaitTermination()
 
-class Listener(tweepy.Stream):
-    def __init__(self, consumer_key, consumer_secret, access_token, access_token_secret, **kwargs):
-        super().__init__(consumer_key, consumer_secret, access_token, access_token_secret, **kwargs)
-        self.limit = 20
+	# query = twitter_df.writeStream \
+	# 	.format("csv") \
+	# 	.option("csv.block.size", 1024) \
+	# 	.trigger(processingTime="5 seconds") \
+	# 	.option("checkpointLocation", "checkPoi/") \
+	# 	.option("path", "cry/") \
+	# 	.outputMode("append") \
+	# 	.start() \
+	# 	.awaitTermination()
 
-    def on_status(self, status):
-        
-        # data
-        data={'tweet_id':status.id_str,
-              'created_at':str(status.created_at),
-              'user_name':status.user.screen_name,
-              'user_id':status.user.id_str,
-            # 'raw',
-              'retweet':False,
-              "tweet_body":0,
-              'tags':matchTag(status)}
-
-        # pull message
-        if re.match(r'RT*',status.text):
-            data['retweet']=True
-            try:
-                if not status.retweeted_status.truncated: data['tweet_body']=status.retweeted_status.text        
-                else: data['tweet_body']=status.retweeted_status.extended_tweet['full_text']
-            except:
-                if not status.truncated: data['tweet_body']=status.text
-                else: data['tweet_body']=status.extended_tweet['full_text']
-        else:
-            if not status.truncated: data['tweet_body']=status.text
-            else: data['tweet_body']=status.extended_tweet['full_text']
-
-        data['tweet_body']=clean(data['tweet_body'])
-
-        # send to producer
-        text = dumps(data, indent=2)
-        producer.send(topic_name, value=text.encode('utf-8'))
-
-        # termination
-        self.limit-=1
-        if self.limit<1: self.disconnect()
-
-# trending
-# https://www.geeksforgeeks.org/python-api-trends_place-in-tweepy/
-woeid=23424775 # 1=worldwide, 23424775=Canada
-# worldwide might include non English tags. Listener will run indefinitely because tweets are not in English & it's looking for English tweets due to filter(languages=['en'])
-# tweets will not populate & limit will not be reached.
-
-trends=api.get_place_trends(id=woeid)
-
-# stream by keywords
-# keywords = ["dog"]
-keywords=  [trend['name'] for trend in trends[0]['trends']][:5]
-# print(keywords)
-with open("trends.pkl", "wb") as out_file:
-    pickle.dump(keywords, out_file)
-
-# to Kafka:
-topic_name = "twitter"
-producer = KafkaProducer(bootstrap_servers='localhost:9092') 
-
-# the filter calls the tweets
-stream_tweet = Listener(api_key,api_key_secret,access_token,access_token_secret)
-stream_tweet.filter(track=keywords,languages=['en'])
+	print("------------------------")
+	print("PySpark Structured Streaming with Kafka Application Completed.")
