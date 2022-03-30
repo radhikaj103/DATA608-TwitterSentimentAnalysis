@@ -8,6 +8,7 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer as sia
 
 kafka_topic_name = "twitter"
 kafka_bootstrap_servers = 'http://kafka:29092'
+kafk_output_topic_name = "sentiment"
 
 # Vader
 sentiment = sia()
@@ -49,7 +50,7 @@ if __name__ == "__main__":
 		.add("tweet_body", StringType()) \
 		.add("tags", StringType()))
 
-	#schema = "text STRING"
+
 	twitter_df = twitterStringdf.select(from_json(col("value"), schema).alias("data"))
 
 	print("------------------------")
@@ -60,13 +61,26 @@ if __name__ == "__main__":
 	twitter_df=twitter_df.select("data.*")
 	twitter_df=spsSpark(twitter_df)
 	
-	query = twitter_df.writeStream \
-		.trigger(processingTime='5 seconds') \
-		.format("console") \
-		.option("truncate", "false") \
+	# Write to Kafka Sink
+	kafka_df = twitter_df.withColumn("value", to_json(struct(twitter_df.columns)))
+	query = kafka_df.writeStream \
+		.format("kafka") \
+		.option("kafka.bootstrap.servers", kafka_bootstrap_servers) \
+		.option("topic", kafk_output_topic_name) \
+		.trigger(processingTime="5 seconds") \
+		.outputMode("update") \
+		.option("checkpointLocation", "/tmp/kafka-sink-checkpoint") \
 		.start()
+
+#	query = twitter_df.writeStream \
+#		.trigger(processingTime='5 seconds') \
+#		.format("console") \
+#		.option("truncate", "false") \
+#		.start()
 		# .outputMode("append") \
 		# .start() 
+
+	
 		
 	query.awaitTermination()
 
@@ -79,6 +93,8 @@ if __name__ == "__main__":
 	# 	.outputMode("append") \
 	# 	.start() \
 	# 	.awaitTermination()
+
+
 
 	print("------------------------")
 	print("PySpark Structured Streaming with Kafka Application Completed.")
