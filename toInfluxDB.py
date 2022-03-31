@@ -29,12 +29,12 @@ class InfluxDb:
         # Print imported tweet to Console
         # If tweet in stream does not have tag, do not push to InfluxDB
         
-        print(record['tweet_id'])
+        print(record)
         if 'tags' in record:
             point = Point("sentiment") \
                 .tag("tag", record['tags']) \
-                .tag("tweet_id", record['tweet_id']) \
-                .tag("user_id", record['user_id']) \
+                .field("tweet_id", record['tweet_id']) \
+                .field("user_id", record['user_id']) \
                 .field("score", float(record['score'])) \
                 .field("retweet", int(record['retweet'])) \
                 .time(record["created_at"], WritePrecision.MS)
