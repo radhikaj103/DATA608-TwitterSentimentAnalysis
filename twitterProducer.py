@@ -3,7 +3,6 @@ import configparser
 from json import dumps, loads
 import tweepy
 import re
-import pickle
 
 # read config
 config = configparser.ConfigParser()
@@ -57,15 +56,8 @@ class Listener(tweepy.Stream):
         # pull message
         if re.match(r'RT*',status.text):
             data['retweet']=True
-            try:
-                if not status.retweeted_status.truncated: data['tweet_body']=status.retweeted_status.text        
-                else: data['tweet_body']=status.retweeted_status.extended_tweet['full_text']
-            except:
-                if not status.truncated: data['tweet_body']=status.text
-                else: data['tweet_body']=status.extended_tweet['full_text']
-        else:
-            if not status.truncated: data['tweet_body']=status.text
-            else: data['tweet_body']=status.extended_tweet['full_text']
+        if not status.truncated: data['tweet_body']=status.text
+        else: data['tweet_body']=status.extended_tweet['full_text']
 
         data['tweet_body']=clean(data['tweet_body'])
 
@@ -89,8 +81,6 @@ trends=api.get_place_trends(id=woeid)
 # keywords = ["dog"]
 keywords=  [trend['name'] for trend in trends[0]['trends']][:5]
 # print(keywords)
-with open("trends.pkl", "wb") as out_file:
-    pickle.dump(keywords, out_file)
 
 # to Kafka:
 topic_name = "twitter"
