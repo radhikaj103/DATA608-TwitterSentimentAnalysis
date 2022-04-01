@@ -80,11 +80,11 @@ if __name__ == "__main__":
 		.option("checkpointLocation", "/tmp/kafka-sink-checkpoint") \
 		.start()
 
-	query = twitter_df.writeStream \
-		.trigger(processingTime='5 seconds') \
-		.format("console") \
-		.option("truncate", "false") \
-		.start()	
+	# query = twitter_df.writeStream \
+	# 	.trigger(processingTime='5 seconds') \
+	# 	.format("console") \
+	# 	.option("truncate", "false") \
+	# 	.start()	
 		
 	query.awaitTermination()
 
