@@ -25,15 +25,7 @@ def matchTag(s):
     '''
     for tag in keywords:
         if re.search(tag.lower(),str(s).lower()): return tag
-    # return [tag for tag in keywords if re.search(tag.lower(),str(s).lower())]
-
-def clean(s):
-    s=re.sub(r'(RT @|@|https|#)\S+','',s) # links
-    s=re.sub(r'\n',' ',s) # new lines
-    s=re.sub(r' +',' ',s) # extra spaces
-    s=s.rstrip() # trailing spaces
-    return s
-    
+    # return [tag for tag in keywords if re.search(tag.lower(),str(s).lower())]    
 
 class Listener(tweepy.Stream):
     def __init__(self, consumer_key, consumer_secret, access_token, access_token_secret, **kwargs):
@@ -56,9 +48,7 @@ class Listener(tweepy.Stream):
         # pull message
         if not status.truncated: data['tweet_body']=status.text
         else: data['tweet_body']=status.extended_tweet['full_text']
-
-        data['tweet_body']=clean(data['tweet_body'])
-
+        
         # send to producer
         text = dumps(data, indent=2)
         producer.send(topic_name, value=text.encode('utf-8'))
