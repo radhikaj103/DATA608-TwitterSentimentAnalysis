@@ -1,7 +1,6 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
-# from pyspark.sql import functions as F
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer as sia
 
 
@@ -72,27 +71,15 @@ if __name__ == "__main__":
 		.option("checkpointLocation", "/tmp/kafka-sink-checkpoint") \
 		.start()
 
-#	query = twitter_df.writeStream \
-#		.trigger(processingTime='5 seconds') \
-#		.format("console") \
-#		.option("truncate", "false") \
-#		.start()
-		# .outputMode("append") \
-		# .start() 
+	# query = twitter_df.writeStream \
+	# 	.trigger(processingTime='5 seconds') \
+	# 	.format("console") \
+	# 	.option("truncate", "false") \
+	# 	.start()
 
 	
 		
 	query.awaitTermination()
-
-	# query = twitter_df.writeStream \
-	# 	.format("csv") \
-	# 	.option("csv.block.size", 1024) \
-	# 	.trigger(processingTime="5 seconds") \
-	# 	.option("checkpointLocation", "checkPoi/") \
-	# 	.option("path", "cry/") \
-	# 	.outputMode("append") \
-	# 	.start() \
-	# 	.awaitTermination()
 
 
 

@@ -29,10 +29,9 @@ def matchTag(s):
 
 def clean(s):
     s=re.sub(r'(RT @|@|https|#)\S+','',s) # links
-    # s=re.sub(r'@','',s)
     s=re.sub(r'\n',' ',s) # new lines
     s=re.sub(r' +',' ',s) # extra spaces
-    s=s.rstrip()
+    s=s.rstrip() # trailing spaces
     return s
     
 
@@ -48,14 +47,13 @@ class Listener(tweepy.Stream):
               'created_at':str(status.created_at),
               'user_name':status.user.screen_name,
               'user_id':status.user.id_str,
-            # 'raw',
               'retweet':False,
               "tweet_body":0,
               'tags':matchTag(status)}
 
-        # pull message
         if re.match(r'RT*',status.text):
             data['retweet']=True
+        # pull message
         if not status.truncated: data['tweet_body']=status.text
         else: data['tweet_body']=status.extended_tweet['full_text']
 
@@ -70,15 +68,11 @@ class Listener(tweepy.Stream):
         if self.limit<1: self.disconnect()
 
 # trending
-# https://www.geeksforgeeks.org/python-api-trends_place-in-tweepy/
 woeid=23424775 # 1=worldwide, 23424775=Canada
-# worldwide might include non English tags. Listener will run indefinitely because tweets are not in English & it's looking for English tweets due to filter(languages=['en'])
-# tweets will not populate & limit will not be reached.
 
 trends=api.get_place_trends(id=woeid)
 
 # stream by keywords
-# keywords = ["dog"]
 keywords=  [trend['name'] for trend in trends[0]['trends']][:5]
 # print(keywords)
 
