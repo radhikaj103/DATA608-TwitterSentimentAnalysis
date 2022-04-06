@@ -1,8 +1,8 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
-# from pyspark.sql import functions as F
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer as sia
+import re
 
 
 
@@ -12,13 +12,21 @@ kafk_output_topic_name = "sentiment"
 
 # Vader
 sentiment = sia()
-def sps(text):
-	"Get Vader sentiment polarity compound score"
-	return sentiment.polarity_scores(text)['compound']
 def spsSpark(sparkDF, textColumn="tweet_body"):
-	"Apply Vader sps to Spark"
-	sps_udf = udf(sps, StringType())
+	"Sentiment Polarity Score: apply Vader SentimentIntensityAnalyzer through Spark"
+	sps_udf = udf(lambda text: sentiment.polarity_scores(text)['compound'], StringType())
 	return sparkDF.withColumn('score', sps_udf(textColumn))
+
+# cleaning
+def clean(s):
+    s=re.sub(r'(RT @|@|https|#)\S+','',s) # links
+    s=re.sub(r'\n',' ',s) # new lines
+    s=re.sub(r' +',' ',s) # extra spaces
+    s=s.rstrip() # trailing spaces
+    return s
+def cleanSpark(sparkDF, textColumn="tweet_body"):
+	clean_udf = udf(clean, StringType())
+	return sparkDF.withColumn(textColumn, clean_udf(textColumn))
 
 if __name__ == "__main__":
 	print("PySpark Structured Streaming with Kafka Applications Started ...")
@@ -57,9 +65,9 @@ if __name__ == "__main__":
 	twitter_df.printSchema()
 	print("------------------------")
     
-	# Vader
 	twitter_df=twitter_df.select("data.*")
-	twitter_df=spsSpark(twitter_df)
+	twitter_df=cleanSpark(twitter_df) # Clean
+	twitter_df=spsSpark(twitter_df) # Vader
 	
 	# Write to Kafka Sink
 	kafka_df = twitter_df.withColumn("value", to_json(struct(twitter_df.columns)))
@@ -72,29 +80,13 @@ if __name__ == "__main__":
 		.option("checkpointLocation", "/tmp/kafka-sink-checkpoint") \
 		.start()
 
-#	query = twitter_df.writeStream \
-#		.trigger(processingTime='5 seconds') \
-#		.format("console") \
-#		.option("truncate", "false") \
-#		.start()
-		# .outputMode("append") \
-		# .start() 
-
-	
+	# query = twitter_df.writeStream \
+	# 	.trigger(processingTime='5 seconds') \
+	# 	.format("console") \
+	# 	.option("truncate", "false") \
+	# 	.start()	
 		
 	query.awaitTermination()
-
-	# query = twitter_df.writeStream \
-	# 	.format("csv") \
-	# 	.option("csv.block.size", 1024) \
-	# 	.trigger(processingTime="5 seconds") \
-	# 	.option("checkpointLocation", "checkPoi/") \
-	# 	.option("path", "cry/") \
-	# 	.outputMode("append") \
-	# 	.start() \
-	# 	.awaitTermination()
-
-
 
 	print("------------------------")
 	print("PySpark Structured Streaming with Kafka Application Completed.")
