@@ -36,7 +36,7 @@ Step 3: Running Docker Compose
 -	Next, open terminal application with multiple clients (for producer, Kafka server, and import from Kafka sink to InfluxDB). Tweets should be streaming in, viewable in the terminal window.
 
 Step 4: InfluxDB Dashboard
-- Copy-paste the localhost into a browser window. Log-in with credentials defined in docker-compose file.
+- Open http://localhost:8086/ in a browser window. Log-in with credentials defined in docker-compose file.
 - Navigate GUI to Boards to view the Sentiment Analysis Dashboard. It has multiple auto-refreshing plots, with adjustable refreshing periods. The Dashboard includes:
   - Trend sentiment 30-second aggregates.
   - Engagement count: number of tweets per 30 seconds.
