@@ -58,7 +58,9 @@ Step 5: InfluxDB Dashboard
   - On the right side, change "Past 1h" to a shorter timeframe to view the results ("Past 5m" suggested). Nothing will show if data is not consinuously fed into InfluxDB.
 
 ## References
-
+- https://sparkbyexamples.com/spark/spark-dataframe-withcolumn/
+- https://sparkbyexamples.com/pyspark/pyspark-udf-user-defined-function/
+- https://sparkbyexamples.com/pyspark/pyspark-structtype-and-structfield/
 - https://spark.apache.org/docs/latest/ml-pipeline.html
 - Twitter API tutorial https://www.youtube.com/watch?v=Lu1nskBkPJU
 - Creating Docker images from contaniers example https://www.youtube.com/watch?v=svs-_9SAYz0
