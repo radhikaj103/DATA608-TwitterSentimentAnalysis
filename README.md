@@ -56,3 +56,10 @@ Step 5: InfluxDB Dashboard
   - Select the Explore tab on the left.
   - Select from the twitter_data>tag>score>sentiment. Select all tags you wish to view.
   - On the right side, change "Past 1h" to a shorter timeframe to view the results ("Past 5m" suggested). Nothing will show if data is not consinuously fed into InfluxDB.
+
+## References
+
+- https://spark.apache.org/docs/latest/ml-pipeline.html
+- Twitter API tutorial https://www.youtube.com/watch?v=Lu1nskBkPJU
+- Creating Docker images from contaniers example https://www.youtube.com/watch?v=svs-_9SAYz0
+- Creating Docker volumes https://www.youtube.com/watch?v=VOK06Q4QqvE
