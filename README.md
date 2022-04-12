@@ -50,7 +50,7 @@ Step 5: InfluxDB Dashboard
   - Trend sentiment 30-second aggregates.
   - Engagement count: number of tweets per 30 seconds.
   - Histograms: distribution of sentiment scores for a few topics.
-  - Table containing total nubmer of tweets for each trend over window.
+  - Table containing total number of tweets for each trend over window.
 - Explore data with InfluxDB:
   - Select the Explore tab on the left.
   - Select from the twitter_data>tag>score>sentiment. Select all tags you wish to view.
