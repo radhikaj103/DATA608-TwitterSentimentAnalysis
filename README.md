@@ -6,7 +6,7 @@ This is a project allowing the user to visualize sentiment scores from the curre
 
 
 Step 1: Account Set-Ups
-- Go to the Twitter API Documentation (https://developer.twitter.com/en/docs/twitter-api), and click Sign up to create your own Developer account. Once the account is created, four keys are generated that are necessary to pull from the API. Store these in a config.ini file without quotes:
+- Go to the Twitter API Documentation (https://developer.twitter.com/en/docs/twitter-api), and click Sign up to create your own Developer account. Once the account is created, four keys are generated that are necessary to pull from the API. Store these in a "config.ini" file without quotes around the provided keys:
 ```
 [twitter]
 
