@@ -1,8 +1,7 @@
 # DATA608-Team5
 This is a project allowing the user to visualize sentiment scores from the current top 5 trending topics on Twitter. It uses a series of softwares, containers, and natural language processing tools. The microservices architecture, meaning each component of application is its own service running in its own container that communicates through APIs, is visualized. The advantages of having each service in its own container are the ability for independent modification, ease of scaling, and can add or remove remote services when required without affecting other services. Following the instructions below will let you set up the entire application.
 
-
-![microservicearch](https://user-images.githubusercontent.com/100740803/162824013-b9999bd6-e238-4c12-b5e2-cb8f6f5e44a5.png)
+![microservicearch](https://user-images.githubusercontent.com/100740803/162856065-83ec9cda-bb73-4b03-958b-bdfcd8870f86.png)
 
 
 Step 1: Account Set-Ups
