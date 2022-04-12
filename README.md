@@ -35,6 +35,7 @@ There are 8 files in the GitHub repository that create a pipeline from the Twitt
 	- Can now perform manipulations on dataframe (cleaning and sentiment polarities using VADER Sentiment Analysis: https://github.com/cjhutto/vaderSentiment)
 	- Send back to Kafka
 - *toInfluxDB.py*: InfluxDB consumer script. Takes each element of stream, splits components to get data needed, writes to InfluxDB using custom writer.
+- *sentiment_analysis_dashboard.json*: Can be used to load a dashboard, however, each plot may need to be configured with the desired hashtags.
 
 Step 3: Setup the Docker containers
 -	Go to directory where all files are located. Start containers with command `docker-compose up -d`. Docker Compose is a container orchestration tool that can run a number of containers on a single host machine. The docker-compose.yml contains the run commands.
