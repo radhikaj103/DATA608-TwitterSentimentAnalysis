@@ -6,9 +6,16 @@ This is a project allowing the user to visualize sentiment scores from the curre
 
 
 Step 1: Account Set-Ups
-- Go to the Twitter API Documentation (https://developer.twitter.com/en/docs/twitter-api), and click Sign up to create your own Developer account. Once the account is created, four secret keys are generated that are necessary to pull from the API. Store these in a config.ini file as 'api_key', 'api_key_secret', 'access_token', and 'access_token_secret'.
-- Kafka?
-- Docker?
+- Go to the Twitter API Documentation (https://developer.twitter.com/en/docs/twitter-api), and click Sign up to create your own Developer account. Once the account is created, four keys are generated that are necessary to pull from the API. Store these in a config.ini file without quotes:
+```
+[twitter]
+
+api_key = XXX
+api_key_secret = XXX
+
+access_token = XXX
+access_token_secret = XXX
+```
 
 Step 2: File Downloads
 There are 8 files in the GitHub repository that create a pipeline from the Twitter API to an InfluxDB dashboard. Key information about the main files is explained below:
@@ -30,15 +37,22 @@ There are 8 files in the GitHub repository that create a pipeline from the Twitt
 	- Send back to Kafka
 - *toInfluxDB.py*: InfluxDB consumer script. Takes each element of stream, splits components to get data needed, writes to InfluxDB using custom writer.
 
-Step 3: Running Docker Compose
--	Go to directory where all files are located. Start containers with command “docker-compose up -d”. Docker Copmose is a container orchestration tool that can run a number of containers on a single host machine. The docker-compose.yml contains the run commands.
--	Once containers are started, the application is started by running producer and consumer scripts.
--	Next, open terminal application with multiple clients (for producer, Kafka server, and import from Kafka sink to InfluxDB). Tweets should be streaming in, viewable in the terminal window.
+Step 3: Setup the Docker containers
+-	Go to directory where all files are located. Start containers with command `docker-compose up -d`. Docker Compose is a container orchestration tool that can run a number of containers on a single host machine. The docker-compose.yml contains the run commands.
 
-Step 4: InfluxDB Dashboard
-- Open http://localhost:8086/ in a browser window. Log-in with credentials defined in docker-compose file.
+Step 4:	Run the scripts
+-	On the same terminal as previous start the Kafka consumer with `docker exec spark-master bash scripts/start_consumer.sh`.
+-	Once the consumer stops outputting logs and shows the Spark DataFrame schema, on a 2nd terminal run the producer script to pull tweets `python twitterProducer.py`
+-	In a 3rd terminal, send data to InfluxDB by running `python toInfluxDF.py`. You make have to install the influxdb-client (https://anaconda.org/conda-forge/influxdb-client).
+
+Step 5: InfluxDB Dashboard
+- Open http://localhost:8086/ in a browser window. Log-in with credentials user: admin, pw: admin123.
 - Navigate GUI to Boards to view the Sentiment Analysis Dashboard. It has multiple auto-refreshing plots, with adjustable refreshing periods. The Dashboard includes:
   - Trend sentiment 30-second aggregates.
   - Engagement count: number of tweets per 30 seconds.
   - Histograms: distribution of sentiment scores for a few topics.
   - Table containing total nubmer of tweets for each trend over window.
+- Explore data with InfluxDB:
+  - Select the Explore tab on the left.
+  - Select from the twitter_data>tag>score>sentiment. Select all tags you wish to view.
+  - On the right side, change "Past 1h" to a shorter timeframe to view the results ("Past 5m" suggested). Nothing will show if data is not consinuously fed into InfluxDB.
