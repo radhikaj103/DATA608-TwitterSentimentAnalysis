@@ -43,7 +43,7 @@ Step 3: Setup the Docker containers
 Step 4:	Run the scripts
 -	On the same terminal as previous start the Kafka consumer with `docker exec spark-master bash scripts/start_consumer.sh`.
 -	Once the consumer stops outputting logs and shows the Spark DataFrame schema, on a 2nd terminal run the producer script to pull tweets `python twitterProducer.py`
--	In a 3rd terminal, send data to InfluxDB by running `python toInfluxDF.py`. You make have to install the influxdb-client (https://anaconda.org/conda-forge/influxdb-client).
+-	In a 3rd terminal, send data to InfluxDB by running `python toInfluxDF.py`. You make have to install the influxdb-client package (https://anaconda.org/conda-forge/influxdb-client).
 
 Step 5: InfluxDB Dashboard
 - Open http://localhost:8086/ in a browser window. Log-in with credentials user: admin, pw: admin123.
