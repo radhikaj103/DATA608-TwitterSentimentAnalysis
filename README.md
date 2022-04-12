@@ -24,7 +24,7 @@ There are 8 files in the GitHub repository that create a pipeline from the Twitt
 		- **Kafka**: Image from Confluent inc.
 		- **Spark-master**
 		- **Spark-worker-1**
-		- **influxDB**: timeseries DB for storing data and visualization
+		- **influxDB**: timeseries DB for storing data and visualization. Sources: https://medium.com/geekculture/deploying-influxdb-2-0-using-docker-6334ced65b6c, https://github.com/JonasProgrammer/docker-influxdb)
 		- init-kafka: Initializing by creating two topics: twitter (ingests data from Twitter API into Kafka server) and sentiment (ingests processed data from Spark with sentiment scores into Kafka)
 - *twitterProducer.py*: Twitter producer script that pulls tweets from top 5 trending topics in Canada and sends them to Kafaka.
 	- JSON data is converted to raw text.
@@ -65,3 +65,7 @@ Step 5: InfluxDB Dashboard
 - Twitter API tutorial https://www.youtube.com/watch?v=Lu1nskBkPJU
 - Creating Docker images from contaniers example https://www.youtube.com/watch?v=svs-_9SAYz0
 - Creating Docker volumes https://www.youtube.com/watch?v=VOK06Q4QqvE
+- Configuring influxDB with Docker: https://medium.com/geekculture/deploying-influxdb-2-0-using-docker-6334ced65b6c
+- Configuring influxDB with Docker: https://github.com/JonasProgrammer/docker-influxdb
+- Writing From Kafka to InfluxDB: https://influxdb-python.readthedocs.io/en/latest/api-documentation.html
+- Writing From Kafka to InfluxDB: https://docs.influxdata.com/influxdb/v1.8/write_protocols/line_protocol_tutorial/)
